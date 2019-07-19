@@ -1,9 +1,16 @@
+#define _USE_MATH_DEFINES
+
 #include <GL/glut.h>
 #include <stdio.h>
 #include <time.h>
+#include <math.h>
 
-int t = 68;
-// int t = 0;
+double elephantRotation = 68;
+double elephantX = 0;
+double elephantZ = -2;
+bool up_arrow_down = false;
+bool right_arrow_down = false;
+bool left_arrow_down = false;
 
 void writeText(GLfloat x, GLfloat y, void* font, const char* text)
 {
@@ -42,62 +49,63 @@ void drawRoom()
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularCoeff);
 	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 10);
 	
+
 	glNormal3f(0., 0., -1.);
 	glBegin(GL_POLYGON);
-	glVertex3d(5, -5, 0);
-	glVertex3d(5, 5, 0);
-	glVertex3d(-5, 5, 0);
-	glVertex3d(-5, -5, 0);
-	glVertex3d(5, -5, 0);
+	glVertex3d(10, -5, 0);
+	glVertex3d(10, 5, 0);
+	glVertex3d(-10, 5, 0);
+	glVertex3d(-10, -5, 0);
+	glVertex3d(10, -5, 0);
 	glEnd();
 
 	glNormal3f(0., 0., 1.);
 	glBegin(GL_POLYGON);
-	glVertex3d(5, -5, -10);
-	glVertex3d(5, 5, -10);
-	glVertex3d(-5, 5, -10);
-	glVertex3d(-5, -5, -10);
-	glVertex3d(5, -5, -10);
+	glVertex3d(10, -5, -15);
+	glVertex3d(10, 5, -15);
+	glVertex3d(-10, 5, -15);
+	glVertex3d(-10, -5, -15);
+	glVertex3d(10, -5, -15);
 	glEnd();
 
 	// Left
 	glNormal3f(-1., 0., 0.);
 	glBegin(GL_POLYGON);
-	glVertex3d(5, -5, -10);
-	glVertex3d(5, 5, -10);
-	glVertex3d(5, 5, 0);
-	glVertex3d(5, -5, 0);
-	glVertex3d(5, -5, -10);
+	glVertex3d(10, -5, -15);
+	glVertex3d(10, 5, -15);
+	glVertex3d(10, 5, 0);
+	glVertex3d(10, -5, 0);
+	glVertex3d(10, -5, -15);
 	glEnd();
 
 	// Right
 	glNormal3f(1., 0., 0.);
 	glBegin(GL_POLYGON);
-	glVertex3d(-5, -5, -10);
-	glVertex3d(-5, 5, -10);
-	glVertex3d(-5, 5, 0);
-	glVertex3d(-5, -5, 0);
-	glVertex3d(-5, -5, -10);
+	glVertex3d(-10, -5, -15);
+	glVertex3d(-10, 5, -15);
+	glVertex3d(-10, 5, 0);
+	glVertex3d(-10, -5, 0);
+	glVertex3d(-10, -5, -15);
 	glEnd();
 
 	// Top
 	glNormal3f(0., -1., 0.);
 	glBegin(GL_POLYGON);
-	glVertex3d(5, 5, -10);
-	glVertex3d(5, 5, 0);
-	glVertex3d(-5, 5, 0);
-	glVertex3d(-5, 5, -10);
-	glVertex3d(5, 5, -10);
+	glVertex3d(10, 5, -15);
+	glVertex3d(10, 5, 0);
+	glVertex3d(-10, 5, 0);
+	glVertex3d(-10, 5, -15);
+	glVertex3d(10, 5, -15);
 	glEnd();
 
 	// Bottom
 	glNormal3f(0., 1., 0.);
 	glBegin(GL_POLYGON);
-	glVertex3d(5, -5, -10);
-	glVertex3d(5, -5, 0);
-	glVertex3d(-5, -5, 0);
-	glVertex3d(-5, -5, -10);
-	glVertex3d(5, -5, -10);
+	glVertex3d(10, -5, -15);
+	glVertex3d(10, -5, 0);
+	glVertex3d(-10, -5, 0);
+	glVertex3d(-10, -5, -15);
+	glVertex3d(10, -5, -15);
 	glEnd();
 
 
@@ -126,8 +134,8 @@ void drawElephant()
 	glMatrixMode(GL_MODELVIEW);
 	// glLoadIdentity();
 
-	// glTranslatef(3, 3, -2);
-	glRotatef(t, 0, 1, 0);
+	glTranslatef(elephantX, -3.9, elephantZ);
+	glRotatef(elephantRotation, 0, 1, 0);
 	// glRotatef(1.5 * t, 1, 0, 0);
 	// glRotatef(2 * t, 0, 0, 1);
 	// glScalef(1.5, 1.5, 1.5);
@@ -262,10 +270,16 @@ void display()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glColor3f(0.0, 0.0, 1.0);
-	gluLookAt(0, 0, -9, 0, 0, 0, 0, 1, 0);
+
+	gluLookAt(4, 3.5, -14.5, -7, -5, 0, 0, 1, 0);
+	// gluLookAt(4, 3.5, -14.5, elephantX, -3.9, elephantZ, 0, 1, 0);
+	// gluLookAt(4, 3.5, -14.5, 10 * elephantRotation, 0, 100.5, 0, 1, 0);
+	// gluLookAt(elephantX, -3.9, elephantZ, 0, 0, 0, 0, 1, 0);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity(); // Reset model view transformations
+
+	
 
 	// glTranslatef(0, 0, -5);
 	// glRotatef(t, 0, 1, 0);
@@ -274,16 +288,19 @@ void display()
 	// glTranslatef(0, 0, 5);
 	
 	drawRoom();
-
+	
 	drawOtherStuff();
 	
 	glLoadIdentity();
 
-	glTranslatef(0, 0, -2.);
-
 	drawElephant();
 
 	glColor3f(0.0, 0.7, 0.5);
+
+	// glLoadIdentity(); // Reset transformation
+
+	// gluLookAt(4, 3.5, -14.5, -7, -5, 0, 0, 1, 0);
+	// gluLookAt(4, 3.5, -14.5, elephantX, -3.9, elephantZ, 0, 1, 0);
 
 	glLoadIdentity(); // Reset transformation
 
@@ -307,7 +324,25 @@ void reshape(GLint newWidth, GLint newHeight)
 // Adjust variable "t" controlling rotation
 void timer(int v)
 {
-	t += 1;
+	double step_size = 0.2;
+
+	if (up_arrow_down)
+	{
+		elephantX -= step_size * cos(elephantRotation * M_PI / 180);
+		elephantZ += step_size * sin(elephantRotation * M_PI / 180);
+	}
+
+	if (right_arrow_down)
+	{
+		elephantRotation -= 4;
+	}
+
+	if (left_arrow_down)
+	{
+		elephantRotation += 4;
+	}
+
+	// elephantRotation += 1;
 	glutPostRedisplay();
 	glutTimerFunc(25, timer, 0);
 }
@@ -315,7 +350,47 @@ void timer(int v)
 // Handle keyboard key presses to switch projection
 void keyboard(unsigned char key, int x, int y)
 {
+	// printf("%s", key);
+	printf("ook\n");
+}
+
+void special_keyboard_down(int key, int x, int y)
+{
 	
+	switch (key)
+	{
+	case GLUT_KEY_UP:
+		up_arrow_down = true;
+		break;
+	case GLUT_KEY_RIGHT:
+		right_arrow_down = true;
+		break;
+	case GLUT_KEY_LEFT:
+		left_arrow_down = true;
+		break;
+	default:
+
+		break;
+	}
+}
+
+void special_keyboard_up(int key, int x, int y)
+{
+	switch (key)
+	{
+	case GLUT_KEY_UP:
+		up_arrow_down = false;
+		break;
+	case GLUT_KEY_RIGHT:
+		right_arrow_down = false;
+		break;
+	case GLUT_KEY_LEFT:
+		left_arrow_down = false;
+		break;
+	default:
+
+		break;
+	}
 }
 
 int main(int argc, char** argv)
@@ -337,7 +412,11 @@ int main(int argc, char** argv)
 	glutDisplayFunc(display);
 	glutReshapeFunc(reshape);
 	glutTimerFunc(25, timer, 0);
-	// glutKeyboardFunc(keyboard);
+
+	glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
+	glutKeyboardFunc(keyboard);
+	glutSpecialFunc(special_keyboard_down);
+	glutSpecialUpFunc(special_keyboard_up);
 
 	glutMainLoop();
 
@@ -350,12 +429,14 @@ int main(int argc, char** argv)
 TODO
 ====
 
-- only floor specular - .5h
+- move elephant by keyboard - 2h
 - tiled floor - 3h
+
+
+- only floor specular - .5h
 - 3 other objects - 2h
 - wall textures - 3h
 - menus: quit, help, adjust ambient light - 5h
-- move elephant by keyboard - 2h
 - move elephant head by keyboard - 3h
 - move tail by keyboard - 2h
 - more light sources and light properties - 3h
