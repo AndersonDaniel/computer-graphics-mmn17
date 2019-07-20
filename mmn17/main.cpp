@@ -11,6 +11,7 @@ double elephantZ = -2;
 bool up_arrow_down = false;
 bool right_arrow_down = false;
 bool left_arrow_down = false;
+bool down_arrow_down = false;
 
 void writeText(GLfloat x, GLfloat y, void* font, const char* text)
 {
@@ -30,7 +31,7 @@ void lighting()
 	glEnable(GL_LIGHT0);
 	glShadeModel(GL_SMOOTH);
 	
-	GLfloat light1PosType[] = { 2, -1, -8, 1.0 };
+	GLfloat light1PosType[] = { 0, 0, -14, 1.0 };
 	glLightfv(GL_LIGHT0, GL_POSITION, light1PosType);
 
 	GLfloat red[] = { 1., 0., 0., 1. };
@@ -113,10 +114,6 @@ void drawRoom()
 
 void drawOtherStuff()
 {
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	
-	// glRotatef(3 * t, 1, 1, 1);
 	glTranslatef(-3.5, -4.5, -1.);
 	glRotatef(120, 0, 1, 0);
 
@@ -131,14 +128,8 @@ void drawOtherStuff()
 
 void drawElephant()
 {
-	glMatrixMode(GL_MODELVIEW);
-	// glLoadIdentity();
-
 	glTranslatef(elephantX, -3.9, elephantZ);
 	glRotatef(elephantRotation, 0, 1, 0);
-	// glRotatef(1.5 * t, 1, 0, 0);
-	// glRotatef(2 * t, 0, 0, 1);
-	// glScalef(1.5, 1.5, 1.5);
 
 	glPushMatrix();
 
@@ -265,44 +256,47 @@ void drawElephant()
 
 void display()
 {
-	lighting();
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glColor3f(0.0, 0.0, 1.0);
 
-	gluLookAt(4, 3.5, -14.5, -7, -5, 0, 0, 1, 0);
-	// gluLookAt(4, 3.5, -14.5, elephantX, -3.9, elephantZ, 0, 1, 0);
-	// gluLookAt(4, 3.5, -14.5, 10 * elephantRotation, 0, 100.5, 0, 1, 0);
-	// gluLookAt(elephantX, -3.9, elephantZ, 0, 0, 0, 0, 1, 0);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+
+	// gluLookAt(0, 0, -25, 0, 0, 0, 0, 1, 0);
+	// gluLookAt(4, 3.5, -14.5, -7, -5, 0, 0, 1, 0);
+	gluLookAt(4, 3.5, -14.5, elephantX, -3.9, elephantZ, 0, 1, 0);
+	// gluLookAt(elephantX, -2.5, elephantZ, 0, 0, 0, 0, 1, 0);
+	// gluLookAt(0, 0, -25, -10, 0, 0, 0, 1, 0);
+
+	glPushMatrix();
 
 	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity(); // Reset model view transformations
+	glPopMatrix();
+	glPushMatrix();
+	lighting();
 
-	
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+	glPushMatrix();
 
-	// glTranslatef(0, 0, -5);
-	// glRotatef(t, 0, 1, 0);
-	// glRotatef(2 * t, 0, 0, 1);
-	// glRotatef(3 * t, 1, 0, 0);
-	// glTranslatef(0, 0, 5);
-	
 	drawRoom();
 	
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+	glPushMatrix();
+
 	drawOtherStuff();
 	
-	glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
+	glPopMatrix();
+	glPushMatrix();
 
 	drawElephant();
 
 	glColor3f(0.0, 0.7, 0.5);
 
-	// glLoadIdentity(); // Reset transformation
-
-	// gluLookAt(4, 3.5, -14.5, -7, -5, 0, 0, 1, 0);
-	// gluLookAt(4, 3.5, -14.5, elephantX, -3.9, elephantZ, 0, 1, 0);
-
-	glLoadIdentity(); // Reset transformation
+	glPopMatrix();
 
 	glFlush();
 }
@@ -326,10 +320,31 @@ void timer(int v)
 {
 	double step_size = 0.2;
 
-	if (up_arrow_down)
+	if (up_arrow_down || down_arrow_down)
 	{
-		elephantX -= step_size * cos(elephantRotation * M_PI / 180);
-		elephantZ += step_size * sin(elephantRotation * M_PI / 180);
+		int coeff = down_arrow_down ? -1 : 1;
+		elephantX -= coeff * step_size * cos(elephantRotation * M_PI / 180);
+		elephantZ += coeff * step_size * sin(elephantRotation * M_PI / 180);
+
+		if (elephantX <= -8.5)
+		{
+			elephantX = -8.5;
+		}
+
+		if (elephantX >= 8.5)
+		{
+			elephantX = 8.5;
+		}
+
+		if (elephantZ <= -13.5)
+		{
+			elephantZ = -13.5;
+		}
+
+		if (elephantZ >= -1.5)
+		{
+			elephantZ = -1.5;
+		}
 	}
 
 	if (right_arrow_down)
@@ -342,7 +357,6 @@ void timer(int v)
 		elephantRotation += 4;
 	}
 
-	// elephantRotation += 1;
 	glutPostRedisplay();
 	glutTimerFunc(25, timer, 0);
 }
@@ -350,8 +364,6 @@ void timer(int v)
 // Handle keyboard key presses to switch projection
 void keyboard(unsigned char key, int x, int y)
 {
-	// printf("%s", key);
-	printf("ook\n");
 }
 
 void special_keyboard_down(int key, int x, int y)
@@ -367,6 +379,9 @@ void special_keyboard_down(int key, int x, int y)
 		break;
 	case GLUT_KEY_LEFT:
 		left_arrow_down = true;
+		break;
+	case GLUT_KEY_DOWN:
+		down_arrow_down = true;
 		break;
 	default:
 
@@ -386,6 +401,9 @@ void special_keyboard_up(int key, int x, int y)
 		break;
 	case GLUT_KEY_LEFT:
 		left_arrow_down = false;
+		break;
+	case GLUT_KEY_DOWN:
+		down_arrow_down = false;
 		break;
 	default:
 
@@ -429,12 +447,11 @@ int main(int argc, char** argv)
 TODO
 ====
 
-- move elephant by keyboard - 2h
 - tiled floor - 3h
-
-
 - only floor specular - .5h
 - 3 other objects - 2h
+- allow user to look at the world through elephant's eyes - 1h
+
 - wall textures - 3h
 - menus: quit, help, adjust ambient light - 5h
 - move elephant head by keyboard - 3h
@@ -442,7 +459,6 @@ TODO
 - more light sources and light properties - 3h
 - allow user to adjust light magnitude, location and direction - 3h
 - allow use to control camera location - 2h
-- allow user to look at the world through elephant's eyes - 1h
 - doc - 3h
 
 */
