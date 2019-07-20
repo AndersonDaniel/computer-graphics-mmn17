@@ -12,6 +12,7 @@ bool up_arrow_down = false;
 bool right_arrow_down = false;
 bool left_arrow_down = false;
 bool down_arrow_down = false;
+bool elephantPOV = false;
 
 void writeText(GLfloat x, GLfloat y, void* font, const char* text)
 {
@@ -375,12 +376,17 @@ void display()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
-	// gluLookAt(0, 0, -25, 0, 0, 0, 0, 1, 0);
-	// gluLookAt(4, 3.5, -14.5, -7, -5, 0, 0, 1, 0);
-	gluLookAt(4, 3.5, -14.5, elephantX, -3.9, elephantZ, 0, 1, 0);
-	// gluLookAt(elephantX, -2.5, elephantZ, 0, 0, 0, 0, 1, 0);
-	// gluLookAt(0, 0, -25, -10, 0, 0, 0, 1, 0);
-
+	if (!elephantPOV)
+	{
+		gluLookAt(4, 3.5, -14.5, elephantX, -3.9, elephantZ, 0, 1, 0);
+	}
+	else
+	{
+		double lookAtX = elephantX - cos(elephantRotation * M_PI / 180);
+		double lookAtZ = elephantZ + sin(elephantRotation * M_PI / 180);
+		gluLookAt(elephantX, -2, elephantZ, lookAtX, -2, lookAtZ, 0, 1, 0);
+	}
+	
 	glPushMatrix();
 
 	glMatrixMode(GL_MODELVIEW);
@@ -476,6 +482,10 @@ void timer(int v)
 // Handle keyboard key presses to switch projection
 void keyboard(unsigned char key, int x, int y)
 {
+	if (key == 'e')
+	{
+		elephantPOV = !elephantPOV;
+	}
 }
 
 void special_keyboard_down(int key, int x, int y)
@@ -561,10 +571,7 @@ int main(int argc, char** argv)
 TODO
 ====
 
-- tiled floor - 3h
-- only floor specular - .5h
 - 3 other objects - 2h
-- allow user to look at the world through elephant's eyes - 1h
 
 - wall textures - 3h
 - menus: quit, help, adjust ambient light - 5h
