@@ -225,18 +225,90 @@ void drawRoom()
 
 }
 
-void drawOtherStuff()
+void drawTeapot()
 {
-	glTranslatef(-3.5, -4.5, -1.);
+	glTranslatef(-2.5, -4.2, -2.);
 	glRotatef(120, 0, 1, 0);
 
-	GLfloat ambientCoeff[] = { 0.1, 0.2, 0.2, 1. };
+	GLfloat ambientCoeff[] = { 0.1, 0.3, 0.1, 1. };
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ambientCoeff);
 	GLfloat specularCoeff[] = { 0.8, 0.8, 0.8, 1. };
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularCoeff);
 	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 1.);
 
-	glutSolidTeapot(.5);
+	glutSolidTeapot(1.);
+}
+
+void drawPlate()
+{
+	GLfloat ambientCoeff[] = { 0.3, 0.1, 0.1, 1. };
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ambientCoeff);
+	GLfloat specularCoeff[] = { 0.9, 0.9, 0.9, 1. };
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularCoeff);
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 1.);
+
+	GLUquadricObj *quadratic;
+	quadratic = gluNewQuadric();
+
+	glPushMatrix();
+
+	glTranslatef(-2, -4.94, -12);
+	glRotatef(-90, 1, 0, 0);
+
+	gluDisk(quadratic, 0, .8, 20, 20);
+
+	glPopMatrix();
+
+	glTranslatef(-2, -4.64, -12);
+	glRotatef(90, 1, 0, 0);
+	
+	quadratic = gluNewQuadric();
+	gluQuadricOrientation(quadratic, GLU_INSIDE);
+	gluCylinder(quadratic, 1.3, 0.8, 0.3, 20, 20);
+}
+
+void drawBowl()
+{
+	GLfloat ambientCoeff[] = { 0.1, 0.1, 0.3, 1. };
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ambientCoeff);
+	GLfloat specularCoeff[] = { 0.9, 0.9, 0.9, 1. };
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularCoeff);
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 1.);
+
+	GLUquadricObj *quadratic;
+	quadratic = gluNewQuadric();
+
+	glPushMatrix();
+
+	glTranslatef(4, -4.94, -6);
+	glRotatef(-90, 1, 0, 0);
+
+	gluDisk(quadratic, 0, .6, 20, 20);
+
+	glPopMatrix();
+
+	glTranslatef(4, -4.04, -6);
+	glRotatef(90, 1, 0, 0);
+
+	quadratic = gluNewQuadric();
+	gluQuadricOrientation(quadratic, GLU_INSIDE);
+	gluCylinder(quadratic, 0.9, 0.6, 0.9, 20, 20);
+}
+
+void drawOtherStuff()
+{
+	glPushMatrix();
+
+	drawTeapot();
+
+	glPopMatrix();
+	glPushMatrix();
+
+	drawPlate();
+
+	glPopMatrix();
+
+	drawBowl();
 }
 
 void drawElephant()
@@ -408,13 +480,10 @@ void display()
 	
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
-	glPushMatrix();
 
 	drawElephant();
 
 	glColor3f(0.0, 0.7, 0.5);
-
-	glPopMatrix();
 
 	glFlush();
 }
@@ -570,8 +639,6 @@ int main(int argc, char** argv)
 
 TODO
 ====
-
-- 3 other objects - 2h
 
 - wall textures - 3h
 - menus: quit, help, adjust ambient light - 5h
