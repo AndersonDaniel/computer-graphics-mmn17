@@ -31,15 +31,135 @@ void lighting()
 	glEnable(GL_LIGHT0);
 	glShadeModel(GL_SMOOTH);
 	
-	GLfloat light1PosType[] = { 0, 0, -14, 1.0 };
+	GLfloat light1PosType[] = { 0, 2, -14.5, 1.0 };
 	glLightfv(GL_LIGHT0, GL_POSITION, light1PosType);
 
 	GLfloat red[] = { 1., 0., 0., 1. };
-	GLfloat white[] = { 1., 1., 1., 1. };
+	GLfloat white[] = { .8, .8, .8, 1. };
 	GLfloat black[] = { 0., 0., 0., 1. };
 	glLightfv(GL_LIGHT0, GL_AMBIENT, white);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, white);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, white);
+}
+
+void drawFloor()
+{
+	GLfloat ambientWhiteCoeff[] = { 0.55, 0.55, 0.55, 1. };
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ambientWhiteCoeff);
+	GLfloat specularCoeff[] = { 0.9, 0.9, 0.9, 1. };
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularCoeff);
+	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 10);
+
+	const int TILES_SIDE = 20;
+	double tile_length_x = 20 / TILES_SIDE;
+	double tile_length_z = 15. / TILES_SIDE;
+	const double FRAME_DEPTH = 0.1;
+	const double TILE_LEVITATION = 0.05;
+
+	for (int i = 0; i < TILES_SIDE; i++)
+	{
+		for (int j = i % 2; j < TILES_SIDE; j += 2)
+		{
+			glNormal3f(0., 1., 0.);
+			glBegin(GL_POLYGON);
+			glVertex3d(-10 + tile_length_x * i + FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * j + FRAME_DEPTH);
+			glVertex3d(-10 + tile_length_x * i + FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * (j + 1) - FRAME_DEPTH);
+			glVertex3d(-10 + tile_length_x * (i + 1) - FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * (j + 1) - FRAME_DEPTH);
+			glVertex3d(-10 + tile_length_x * (i + 1) - FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * j + FRAME_DEPTH);
+			glVertex3d(-10 + tile_length_x * i + FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * j + FRAME_DEPTH);
+			glEnd();
+
+			glNormal3f(-TILE_LEVITATION, FRAME_DEPTH, 0.);
+			glBegin(GL_POLYGON);
+			glVertex3d(-10 + tile_length_x * i + FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * j + FRAME_DEPTH);
+			glVertex3d(-10 + tile_length_x * i + FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * (j + 1) - FRAME_DEPTH);
+			glVertex3d(-10 + tile_length_x * i, -5, -15 + tile_length_z * (j + 1));
+			glVertex3d(-10 + tile_length_x * i, -5, -15 + tile_length_z * j);
+			glVertex3d(-10 + tile_length_x * i + FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * j + FRAME_DEPTH);
+			glEnd();
+
+			glNormal3f(0., FRAME_DEPTH, -TILE_LEVITATION);
+			glBegin(GL_POLYGON);
+			glVertex3d(-10 + tile_length_x * i + FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * (j + 1) - FRAME_DEPTH);
+			glVertex3d(-10 + tile_length_x * (i + 1) - FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * (j + 1) - FRAME_DEPTH);
+			glVertex3d(-10 + tile_length_x * (i + 1), -5, -15 + tile_length_z * (j + 1));
+			glVertex3d(-10 + tile_length_x * i, -5, -15 + tile_length_z * (j + 1));
+			glVertex3d(-10 + tile_length_x * i + FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * (j + 1) - FRAME_DEPTH);
+			glEnd();
+
+			glNormal3f(TILE_LEVITATION, FRAME_DEPTH, 0.);
+			glBegin(GL_POLYGON);
+			glVertex3d(-10 + tile_length_x * (i + 1) - FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * (j + 1) - FRAME_DEPTH);
+			glVertex3d(-10 + tile_length_x * (i + 1) - FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * j + FRAME_DEPTH);
+			glVertex3d(-10 + tile_length_x * (i + 1), -5, -15 + tile_length_z * j);
+			glVertex3d(-10 + tile_length_x * (i + 1), -5, -15 + tile_length_z * (j + 1));
+			glVertex3d(-10 + tile_length_x * (i + 1) - FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * (j + 1) - FRAME_DEPTH);
+			glEnd();
+
+			glNormal3f(0., FRAME_DEPTH, TILE_LEVITATION);
+			glBegin(GL_POLYGON);
+			glVertex3d(-10 + tile_length_x * (i + 1) - FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * j + FRAME_DEPTH);
+			glVertex3d(-10 + tile_length_x * i + FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * j + FRAME_DEPTH);
+			glVertex3d(-10 + tile_length_x * i, -5, -15 + tile_length_z * j);
+			glVertex3d(-10 + tile_length_x * (i + 1), -5, -15 + tile_length_z * j);
+			glVertex3d(-10 + tile_length_x * (i + 1) - FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * j + FRAME_DEPTH);
+			glEnd();
+		}
+	}
+
+	GLfloat ambientBlackCoeff[] = { 0.2, 0.2, 0.2, 1. };
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ambientBlackCoeff);
+
+	for (int i = 0; i < TILES_SIDE; i++)
+	{
+		for (int j = 1 - i % 2; j < TILES_SIDE; j += 2)
+		{
+			glNormal3f(0., 1., 0.);
+			glBegin(GL_POLYGON);
+			glVertex3d(-10 + tile_length_x * i + FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * j + FRAME_DEPTH);
+			glVertex3d(-10 + tile_length_x * i + FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * (j + 1) - FRAME_DEPTH);
+			glVertex3d(-10 + tile_length_x * (i + 1) - FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * (j + 1) - FRAME_DEPTH);
+			glVertex3d(-10 + tile_length_x * (i + 1) - FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * j + FRAME_DEPTH);
+			glVertex3d(-10 + tile_length_x * i + FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * j + FRAME_DEPTH);
+			glEnd();
+
+			glNormal3f(-TILE_LEVITATION, FRAME_DEPTH, 0.);
+			glBegin(GL_POLYGON);
+			glVertex3d(-10 + tile_length_x * i + FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * j + FRAME_DEPTH);
+			glVertex3d(-10 + tile_length_x * i + FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * (j + 1) - FRAME_DEPTH);
+			glVertex3d(-10 + tile_length_x * i, -5, -15 + tile_length_z * (j + 1));
+			glVertex3d(-10 + tile_length_x * i, -5, -15 + tile_length_z * j);
+			glVertex3d(-10 + tile_length_x * i + FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * j + FRAME_DEPTH);
+			glEnd();
+
+			glNormal3f(0., FRAME_DEPTH, -TILE_LEVITATION);
+			glBegin(GL_POLYGON);
+			glVertex3d(-10 + tile_length_x * i + FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * (j + 1) - FRAME_DEPTH);
+			glVertex3d(-10 + tile_length_x * (i + 1) - FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * (j + 1) - FRAME_DEPTH);
+			glVertex3d(-10 + tile_length_x * (i + 1), -5, -15 + tile_length_z * (j + 1));
+			glVertex3d(-10 + tile_length_x * i, -5, -15 + tile_length_z * (j + 1));
+			glVertex3d(-10 + tile_length_x * i + FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * (j + 1) - FRAME_DEPTH);
+			glEnd();
+
+			glNormal3f(TILE_LEVITATION, FRAME_DEPTH, 0.);
+			glBegin(GL_POLYGON);
+			glVertex3d(-10 + tile_length_x * (i + 1) - FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * (j + 1) - FRAME_DEPTH);
+			glVertex3d(-10 + tile_length_x * (i + 1) - FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * j + FRAME_DEPTH);
+			glVertex3d(-10 + tile_length_x * (i + 1), -5, -15 + tile_length_z * j);
+			glVertex3d(-10 + tile_length_x * (i + 1), -5, -15 + tile_length_z * (j + 1));
+			glVertex3d(-10 + tile_length_x * (i + 1) - FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * (j + 1) - FRAME_DEPTH);
+			glEnd();
+
+			glNormal3f(0., FRAME_DEPTH, TILE_LEVITATION);
+			glBegin(GL_POLYGON);
+			glVertex3d(-10 + tile_length_x * (i + 1) - FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * j + FRAME_DEPTH);
+			glVertex3d(-10 + tile_length_x * i + FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * j + FRAME_DEPTH);
+			glVertex3d(-10 + tile_length_x * i, -5, -15 + tile_length_z * j);
+			glVertex3d(-10 + tile_length_x * (i + 1), -5, -15 + tile_length_z * j);
+			glVertex3d(-10 + tile_length_x * (i + 1) - FRAME_DEPTH, -5 + TILE_LEVITATION, -15 + tile_length_z * j + FRAME_DEPTH);
+			glEnd();
+		}
+	}
 }
 
 void drawRoom()
@@ -100,15 +220,7 @@ void drawRoom()
 	glEnd();
 
 	// Bottom
-	glNormal3f(0., 1., 0.);
-	glBegin(GL_POLYGON);
-	glVertex3d(10, -5, -15);
-	glVertex3d(10, -5, 0);
-	glVertex3d(-10, -5, 0);
-	glVertex3d(-10, -5, -15);
-	glVertex3d(10, -5, -15);
-	glEnd();
-
+	drawFloor();
 
 }
 
@@ -424,6 +536,8 @@ int main(int argc, char** argv)
 	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LESS);
 	glDepthRange(0.0f, 1.0f);
+	
+	glEnable(GL_NORMALIZE);
 
 
 	glClearColor(0.98, 0.98, 0.93, 0.);
