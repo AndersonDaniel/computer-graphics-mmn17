@@ -14,17 +14,6 @@ bool left_arrow_down = false;
 bool down_arrow_down = false;
 bool elephantPOV = false;
 
-void writeText(GLfloat x, GLfloat y, void* font, const char* text)
-{
-	// Write a continuous segment of text in a certain font and location
-	glRasterPos3f(x, y, 0);
-	while (*text)
-	{
-		glutBitmapCharacter(font, *text);
-		text++;
-	}
-}
-
 void lighting()
 {
 	glEnable(GL_LIGHTING);
@@ -438,9 +427,74 @@ void drawElephant()
 	glPopMatrix();
 }
 
+void writeText(GLfloat x, GLfloat y, void* font, const char* text)
+{
+	// Write a continuous segment of text in a certain font and location
+	glRasterPos2f(x, y);
+	while (*text)
+	{
+		glutBitmapCharacter(font, *text);
+		text++;
+	}
+}
+
+void set_projection(GLint width, GLint height)
+{
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluPerspective(75, (float)width / height, 0.1, 50);
+}
+
+void reshape(GLint newWidth, GLint newHeight)
+{
+	glViewport(0, 0, newWidth, newHeight);
+	set_projection(newWidth, newHeight);
+}
+
+
+void display2D()
+{
+	const int SCREEN_HEIGHT = glutGet(GLUT_SCREEN_HEIGHT);
+
+	glDisable(GL_LIGHTING);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	gluOrtho2D(0, glutGet(GLUT_SCREEN_WIDTH), 0, glutGet(GLUT_SCREEN_HEIGHT));
+
+	glColor3f(.95, .95, .95);
+	writeText(25, SCREEN_HEIGHT - 50, GLUT_BITMAP_HELVETICA_18, "HELP");
+	writeText(25, SCREEN_HEIGHT - 100, GLUT_BITMAP_HELVETICA_18, "ADJUST AMBIENT LIGHT");
+	writeText(25, SCREEN_HEIGHT - 150, GLUT_BITMAP_HELVETICA_18, "QUIT");
+
+	glBegin(GL_LINES);
+
+	glVertex2d(35, SCREEN_HEIGHT - 67);
+	glVertex2d(245, SCREEN_HEIGHT - 67);
+	glVertex2d(35, SCREEN_HEIGHT - 117);
+	glVertex2d(245, SCREEN_HEIGHT - 117);
+
+	glEnd();
+
+	glColor4f(.2, .2, .45, 0.35);
+	glBegin(GL_POLYGON);
+
+	glVertex2d(20, SCREEN_HEIGHT - 20);
+	glVertex2d(300, SCREEN_HEIGHT - 20);
+	glVertex2d(300, SCREEN_HEIGHT - 160);
+	glVertex2d(20, SCREEN_HEIGHT - 160);
+
+	glEnd();
+
+	glEnable(GL_LIGHTING);
+}
 
 void display()
 {
+	set_projection(glutGet(GLUT_SCREEN_WIDTH), glutGet(GLUT_SCREEN_HEIGHT));
+
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glColor3f(0.0, 0.0, 1.0);
@@ -483,24 +537,11 @@ void display()
 
 	drawElephant();
 
-	glColor3f(0.0, 0.7, 0.5);
+	display2D();
 
 	glFlush();
 }
 
-// Set relevant projection according to current state
-void set_projection(GLint width, GLint height)
-{
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-	gluPerspective(75, (float)width / height, 0.1, 50);
-}
-
-void reshape(GLint newWidth, GLint newHeight)
-{
-	glViewport(0, 0, newWidth, newHeight);
-	set_projection(newWidth, newHeight);
-}
 
 // Adjust variable "t" controlling rotation
 void timer(int v)
@@ -551,7 +592,7 @@ void timer(int v)
 // Handle keyboard key presses to switch projection
 void keyboard(unsigned char key, int x, int y)
 {
-	if (key == 'e')
+	if (key == ' ')
 	{
 		elephantPOV = !elephantPOV;
 	}
@@ -602,6 +643,16 @@ void special_keyboard_up(int key, int x, int y)
 	}
 }
 
+void mouse(GLint button, GLint action, GLint x, GLint y)
+{
+	const int SCREEN_HEIGHT = glutGet(GLUT_SCREEN_HEIGHT);
+	y = SCREEN_HEIGHT - y;
+	if (x >= 50 && x <= 200 & y >= SCREEN_HEIGHT - 150 && y < SCREEN_HEIGHT - 100)
+	{
+		exit(0);
+	}
+}
+
 int main(int argc, char** argv)
 {
 	glutInitDisplayMode(GLUT_SINGLE | GLUT_RGB);
@@ -610,14 +661,15 @@ int main(int argc, char** argv)
 	glutInit(&argc, argv);
 	glutCreateWindow("Elephant in a china shop");
 
-	// glEnable(GL_BLEND);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	glEnable(GL_DEPTH_TEST);
 	glDepthMask(GL_TRUE);
 	glDepthFunc(GL_LESS);
 	glDepthRange(0.0f, 1.0f);
 	
 	glEnable(GL_NORMALIZE);
-
 
 	glClearColor(0.98, 0.98, 0.93, 0.);
 	glutDisplayFunc(display);
@@ -628,6 +680,7 @@ int main(int argc, char** argv)
 	glutKeyboardFunc(keyboard);
 	glutSpecialFunc(special_keyboard_down);
 	glutSpecialUpFunc(special_keyboard_up);
+	glutMouseFunc(mouse);
 
 	glutMainLoop();
 
@@ -640,11 +693,15 @@ int main(int argc, char** argv)
 TODO
 ====
 
-- wall textures - 3h
-- menus: quit, help, adjust ambient light - 5h
+Tuesday:
+- menus: help, adjust ambient light - 5h
+
+Wednesday:
 - move elephant head by keyboard - 3h
 - move tail by keyboard - 2h
-- more light sources and light properties - 3h
+
+Weekend:
+- light direction - 1h
 - allow user to adjust light magnitude, location and direction - 3h
 - allow use to control camera location - 2h
 - doc - 3h
