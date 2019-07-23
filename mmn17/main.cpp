@@ -14,6 +14,14 @@ bool left_arrow_down = false;
 bool down_arrow_down = false;
 bool elephantPOV = false;
 
+enum game_state {
+	playing,
+	help,
+	adjust_light
+};
+
+game_state current_state = playing;
+
 void lighting()
 {
 	glEnable(GL_LIGHTING);
@@ -488,6 +496,47 @@ void display2D()
 
 	glEnd();
 
+	if (current_state == help)
+	{
+		glColor3f(.95, .95, .95);
+		writeText(110, SCREEN_HEIGHT - 220, GLUT_BITMAP_HELVETICA_18, 
+			"Use arrow keys to move: UP = forward, DOWN = backward, RIGHT / LEFT = turn");
+
+		writeText(110, SCREEN_HEIGHT - 270, GLUT_BITMAP_HELVETICA_18, 
+			"Press SPACE to toggle between fixed camera and first-elephant point of view");
+
+		writeText(110, SCREEN_HEIGHT - 420, GLUT_BITMAP_HELVETICA_18, "Press ESC to return to game");
+
+		glColor4f(.2, .2, .45, 0.55);
+		glBegin(GL_POLYGON);
+
+		glVertex2d(100, SCREEN_HEIGHT - 200);
+		glVertex2d(950, SCREEN_HEIGHT - 200);
+		glVertex2d(950, 100);
+		glVertex2d(100, 100);
+
+		glEnd();
+	}
+	else if (current_state == adjust_light)
+	{
+		glColor3f(.95, .95, .95);
+		writeText(110, SCREEN_HEIGHT - 220, GLUT_BITMAP_HELVETICA_18,
+			"Adjusting ambient light (press ESC to return to game)");
+
+		writeText(110, SCREEN_HEIGHT - 270, GLUT_BITMAP_HELVETICA_18,
+			"Use arrows: RIGHT / LEFT to choose color and UP / DOWN to adjust magnitude");
+
+		glColor4f(.2, .2, .45, 0.55);
+		glBegin(GL_POLYGON);
+
+		glVertex2d(100, SCREEN_HEIGHT - 200);
+		glVertex2d(950, SCREEN_HEIGHT - 200);
+		glVertex2d(950, 100);
+		glVertex2d(100, 100);
+
+		glEnd();
+	}
+
 	glEnable(GL_LIGHTING);
 }
 
@@ -543,7 +592,6 @@ void display()
 }
 
 
-// Adjust variable "t" controlling rotation
 void timer(int v)
 {
 	double step_size = 0.2;
@@ -589,35 +637,43 @@ void timer(int v)
 	glutTimerFunc(25, timer, 0);
 }
 
-// Handle keyboard key presses to switch projection
 void keyboard(unsigned char key, int x, int y)
 {
-	if (key == ' ')
+	if (current_state == playing)
 	{
-		elephantPOV = !elephantPOV;
+		if (key == ' ')
+		{
+			elephantPOV = !elephantPOV;
+		}
+	}
+	else if ((current_state == help || current_state == adjust_light) && (int)key == 27) // ESC key
+	{
+		current_state = playing;
 	}
 }
 
 void special_keyboard_down(int key, int x, int y)
 {
-	
-	switch (key)
+	if (current_state == playing)
 	{
-	case GLUT_KEY_UP:
-		up_arrow_down = true;
-		break;
-	case GLUT_KEY_RIGHT:
-		right_arrow_down = true;
-		break;
-	case GLUT_KEY_LEFT:
-		left_arrow_down = true;
-		break;
-	case GLUT_KEY_DOWN:
-		down_arrow_down = true;
-		break;
-	default:
+		switch (key)
+		{
+		case GLUT_KEY_UP:
+			up_arrow_down = true;
+			break;
+		case GLUT_KEY_RIGHT:
+			right_arrow_down = true;
+			break;
+		case GLUT_KEY_LEFT:
+			left_arrow_down = true;
+			break;
+		case GLUT_KEY_DOWN:
+			down_arrow_down = true;
+			break;
+		default:
 
-		break;
+			break;
+		}
 	}
 }
 
@@ -647,9 +703,17 @@ void mouse(GLint button, GLint action, GLint x, GLint y)
 {
 	const int SCREEN_HEIGHT = glutGet(GLUT_SCREEN_HEIGHT);
 	y = SCREEN_HEIGHT - y;
-	if (x >= 50 && x <= 200 & y >= SCREEN_HEIGHT - 150 && y < SCREEN_HEIGHT - 100)
+	if (x >= 20 && x <= 300 && y >= SCREEN_HEIGHT - 150 && y < SCREEN_HEIGHT - 100)
 	{
 		exit(0);
+	}
+	else if (x >= 20 && x <= 300 && y >= SCREEN_HEIGHT - 50)
+	{
+		current_state = help;
+	}
+	else if (x >= 20 && x <= 300 && y >= SCREEN_HEIGHT - 100 && y < SCREEN_HEIGHT - 50)
+	{
+		current_state = adjust_light;
 	}
 }
 
@@ -694,7 +758,7 @@ TODO
 ====
 
 Tuesday:
-- menus: help, adjust ambient light - 5h
+- menus: adjust ambient light - 5h
 
 Wednesday:
 - move elephant head by keyboard - 3h
