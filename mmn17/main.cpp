@@ -694,9 +694,12 @@ void display()
 	}
 	else
 	{
-		double lookAtX = elephantX - cos(elephantRotation * M_PI / 180);
-		double lookAtZ = elephantZ + sin(elephantRotation * M_PI / 180);
-		gluLookAt(elephantX, -2, elephantZ, lookAtX, -2, lookAtZ, 0, 1, 0);
+		double lookAtX = elephantX - cos((elephantRotation + headRotationY) * M_PI / 180);
+		double lookAtY = -2 - sin(headRotationZ * M_PI / 180);
+		double lookAtZ = elephantZ + sin((elephantRotation + headRotationY) * M_PI / 180);
+		gluLookAt(elephantX + 4.5 * (lookAtX - elephantX) / 12.,
+				  -2 + 4.5 * (lookAtY + 2) / 12.,
+				 elephantZ + 4.5 * (lookAtZ - elephantZ) / 12., lookAtX, lookAtY, lookAtZ, 0, 1, 0);
 	}
 	
 	glPushMatrix();
@@ -1071,9 +1074,6 @@ int main(int argc, char** argv)
 
 TODO
 ====
-
-Wednesday:
-- adjust camera to head rotation - 1h
 
 Weekend:
 - light direction - 1h
