@@ -16,6 +16,10 @@ bool tail_up = false;
 bool tail_down = false;
 bool tail_right = false;
 bool tail_left = false;
+bool head_up = false;
+bool head_down = false;
+bool head_right = false;
+bool head_left = false;
 bool elephantPOV = false;
 
 double ambientRed = .8;
@@ -24,6 +28,9 @@ double ambientBlue = .8;
 
 double tailRotationY = 90;
 double tailRotationX = -70;
+
+double headRotationY = 0;
+double headRotationZ = 0;
 
 enum game_state {
 	playing,
@@ -339,13 +346,99 @@ void drawElephant()
 
 	glutSolidSphere(1, 100, 100); // Body
 
+	 // Head
 	glTranslatef(-.8, .7, 0);
-	glutSolidSphere(0.65, 20, 20); // Head
+	glRotatef(headRotationY, 0, 1, 0);
+	glRotatef(headRotationZ, 0, 0, 1);
+
+	glPushMatrix();
+
+	glutSolidSphere(0.65, 20, 20);
+
+	// Trunk
+	glPopMatrix();
+	glPushMatrix();
+
+	GLUquadricObj *quadratic;
+	quadratic = gluNewQuadric();
+
+	glTranslatef(-0.42, .02, 0);
+	glRotatef(-90, 0, 1, 0);
+	glRotatef(80, 1, 0, 0);
+
+	gluCylinder(quadratic, .2, .075, 1.015, 20, 20);
 
 	glPopMatrix();
 	glPushMatrix();
 
+	quadratic = gluNewQuadric();
+
+	glTranslatef(-0.6, -.94, 0);
+	glRotatef(-90, 0, 1, 0);
+	glRotatef(50, 1, 0, 0);
+
+	gluCylinder(quadratic, .08, .07, .13, 20, 20);
+
+	glPopMatrix();
+	glPushMatrix();
+
+	// Ears
+	glTranslatef(-0.3, 0., -.6);
+	glScalef(.1, 1, .8);
+
+	glutSolidSphere(0.7, 20, 20);
+
+	glPopMatrix();
+	glPushMatrix();
+
+	glTranslatef(-0.3, 0., .6);
+	glScalef(.1, 1, .8);
+
+	glutSolidSphere(0.7, 20, 20);
+
+	// Eyes
+	GLfloat ambientBlackCoeff[] = { 0., 0., 0., 1. };
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ambientBlackCoeff);
+
+	glPopMatrix();
+	glPushMatrix();
+
+	glTranslatef(-0.55, 0., .22);
+
+	glutSolidSphere(0.1, 20, 20);
+
+	glPopMatrix();
+	glPushMatrix();
+
+	glTranslatef(-0.55, 0., -.22);
+
+	glutSolidSphere(0.1, 20, 20);
+
+	GLfloat ambientWhiteCoeff[] = { 1., 1., 1., 1. };
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ambientWhiteCoeff);
+
+	glPopMatrix();
+	glPushMatrix();
+
+	glTranslatef(-0.6, .02, .21);
+
+	glutSolidSphere(0.05, 20, 20);
+
+	glPopMatrix();
+	glPushMatrix();
+
+	glTranslatef(-0.6, .02, -.24);
+
+	glutSolidSphere(0.05, 20, 20);
+
+	glPopMatrix();
+
 	// Legs
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ambientCoeff);
+
+	glPopMatrix();
+	glPushMatrix();
+
 	glTranslatef(.5, -.9, .4);
 	glutSolidSphere(0.3, 20, 20);
 
@@ -376,82 +469,6 @@ void drawElephant()
 	glRotatef(tailRotationX, 1, 0, 0);
 	
 	glutSolidCone(.05, 1.3, 10, 10);
-
-	glPopMatrix();
-	glPushMatrix();
-
-	// Trunk
-	GLUquadricObj *quadratic;
-	quadratic = gluNewQuadric();
-
-	glTranslatef(-1.22, .72, 0);
-	glRotatef(-90, 0, 1, 0);
-	glRotatef(80, 1, 0, 0);
-
-	gluCylinder(quadratic, .2, .075, 1.015, 20, 20);
-
-	glPopMatrix();
-	glPushMatrix();
-
-	quadratic = gluNewQuadric();
-
-	glTranslatef(-1.4, -.24, 0);
-	glRotatef(-90, 0, 1, 0);
-	glRotatef(50, 1, 0, 0);
-
-	gluCylinder(quadratic, .08, .07, .13, 20, 20);
-
-	glPopMatrix();
-	glPushMatrix();
-
-	// Ears
-	glTranslatef(-1.1, 0.7, -.6);
-	glScalef(.1, 1, .8);
-
-	glutSolidSphere(0.7, 20, 20);
-
-	glPopMatrix();
-	glPushMatrix();
-
-	glTranslatef(-1.1, 0.7, .6);
-	glScalef(.1, 1, .8);
-
-	glutSolidSphere(0.7, 20, 20);
-
-	// Eyes
-	GLfloat ambientBlackCoeff[] = { 0., 0., 0., 1. };
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ambientBlackCoeff);
-
-	glPopMatrix();
-	glPushMatrix();
-
-	glTranslatef(-1.35, .7, .22);
-
-	glutSolidSphere(0.1, 20, 20);
-
-	glPopMatrix();
-	glPushMatrix();
-
-	glTranslatef(-1.35, .7, -.22);
-
-	glutSolidSphere(0.1, 20, 20);
-
-	GLfloat ambientWhiteCoeff[] = { 1., 1., 1., 1. };
-	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ambientWhiteCoeff);
-
-	glPopMatrix();
-	glPushMatrix();
-
-	glTranslatef(-1.4, .72, .21);
-
-	glutSolidSphere(0.05, 20, 20);
-
-	glPopMatrix();
-	glPushMatrix();
-
-	glTranslatef(-1.4, .72, -.24);
-
-	glutSolidSphere(0.05, 20, 20);
 
 	glPopMatrix();
 }
@@ -517,6 +534,9 @@ void displayHelp(const int SCREEN_HEIGHT)
 		"Press SPACE to toggle between fixed camera and first-elephant point of view");
 
 	writeText(110, SCREEN_HEIGHT - 320, GLUT_BITMAP_HELVETICA_18,
+		"Head movement: use ASDW; w = up, s = down, a = left, d = right");
+
+	writeText(110, SCREEN_HEIGHT - 370, GLUT_BITMAP_HELVETICA_18,
 		"Tail movement: use JKLI; i = up, k = down, j = left, l = right");
 
 	writeText(110, SCREEN_HEIGHT - 420, GLUT_BITMAP_HELVETICA_18, "Press ESC to return to game");
@@ -784,6 +804,41 @@ void timer(int v)
 				tailRotationY = 45;
 			}
 		}
+
+		if (head_up)
+		{
+			headRotationZ -= 2;
+			if (headRotationZ < -60)
+			{
+				headRotationZ = -60;
+			}
+		}
+		else if (head_down)
+		{
+			headRotationZ += 2;
+			if (headRotationZ > 20)
+			{
+				headRotationZ = 20;
+			}
+		}
+
+		if (head_right)
+		{
+			headRotationY -= 2;
+			if (headRotationY < -45)
+			{
+				headRotationY = -45;
+			}
+
+		}
+		else if (head_left)
+		{
+			headRotationY += 2;
+			if (headRotationY > 45)
+			{
+				headRotationY = 45;
+			}
+		}
 	}
 	else if (current_state == adjust_light)
 	{
@@ -832,6 +887,18 @@ void keyboard(unsigned char key, int x, int y)
 		case 'l':
 			tail_right = true;
 			break;
+		case 'w':
+			head_up = true;
+			break;
+		case 's':
+			head_down = true;
+			break;
+		case 'a':
+			head_left = true;
+			break;
+		case 'd':
+			head_right = true;
+			break;
 		default:
 			break;
 		}
@@ -857,6 +924,18 @@ void keyboard_up(unsigned char key, int x, int y)
 		break;
 	case 'l':
 		tail_right = false;
+		break;
+	case 'w':
+		head_up = false;
+		break;
+	case 's':
+		head_down = false;
+		break;
+	case 'a':
+		head_left = false;
+		break;
+	case 'd':
+		head_right = false;
 		break;
 	default:
 		break;
@@ -994,7 +1073,7 @@ TODO
 ====
 
 Wednesday:
-- move elephant head by keyboard - 3h
+- adjust camera to head rotation - 1h
 
 Weekend:
 - light direction - 1h
