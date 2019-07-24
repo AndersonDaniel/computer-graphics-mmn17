@@ -14,13 +14,22 @@ bool left_arrow_down = false;
 bool down_arrow_down = false;
 bool elephantPOV = false;
 
+double ambientRed = .8;
+double ambientGreen = .8;
+double ambientBlue = .8;
+
 enum game_state {
 	playing,
 	help,
 	adjust_light
 };
 
+enum color {
+	red, green, blue
+};
+
 game_state current_state = playing;
+color adjusting_color = red;
 
 void lighting()
 {
@@ -34,8 +43,8 @@ void lighting()
 
 	GLfloat red[] = { 1., 0., 0., 1. };
 	GLfloat white[] = { .8, .8, .8, 1. };
-	GLfloat black[] = { 0., 0., 0., 1. };
-	glLightfv(GL_LIGHT0, GL_AMBIENT, white);
+	GLfloat ambient[] = { ambientRed, ambientGreen, ambientBlue, 1. };
+	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, white);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, white);
 }
@@ -459,19 +468,8 @@ void reshape(GLint newWidth, GLint newHeight)
 	set_projection(newWidth, newHeight);
 }
 
-
-void display2D()
+void displayMenu(const int SCREEN_HEIGHT)
 {
-	const int SCREEN_HEIGHT = glutGet(GLUT_SCREEN_HEIGHT);
-
-	glDisable(GL_LIGHTING);
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-
-	gluOrtho2D(0, glutGet(GLUT_SCREEN_WIDTH), 0, glutGet(GLUT_SCREEN_HEIGHT));
-
 	glColor3f(.95, .95, .95);
 	writeText(25, SCREEN_HEIGHT - 50, GLUT_BITMAP_HELVETICA_18, "HELP");
 	writeText(25, SCREEN_HEIGHT - 100, GLUT_BITMAP_HELVETICA_18, "ADJUST AMBIENT LIGHT");
@@ -495,46 +493,150 @@ void display2D()
 	glVertex2d(20, SCREEN_HEIGHT - 160);
 
 	glEnd();
+}
+
+void displayHelp(const int SCREEN_HEIGHT)
+{
+	glColor3f(.95, .95, .95);
+	writeText(110, SCREEN_HEIGHT - 220, GLUT_BITMAP_HELVETICA_18,
+		"Use arrow keys to move: UP = forward, DOWN = backward, RIGHT / LEFT = turn");
+
+	writeText(110, SCREEN_HEIGHT - 270, GLUT_BITMAP_HELVETICA_18,
+		"Press SPACE to toggle between fixed camera and first-elephant point of view");
+
+	writeText(110, SCREEN_HEIGHT - 420, GLUT_BITMAP_HELVETICA_18, "Press ESC to return to game");
+
+	glColor4f(.2, .2, .45, 0.55);
+	glBegin(GL_POLYGON);
+
+	glVertex2d(100, SCREEN_HEIGHT - 200);
+	glVertex2d(950, SCREEN_HEIGHT - 200);
+	glVertex2d(950, 100);
+	glVertex2d(100, 100);
+
+	glEnd();
+}
+
+void displayAdjustAmbientLight(const int SCREEN_HEIGHT)
+{
+	glColor3f(.95, .95, .95);
+	writeText(110, SCREEN_HEIGHT - 220, GLUT_BITMAP_HELVETICA_18,
+		"Adjusting ambient light (press ESC to return to game)");
+
+	writeText(110, SCREEN_HEIGHT - 270, GLUT_BITMAP_HELVETICA_18,
+		"Use arrows: RIGHT / LEFT to choose color and UP / DOWN to adjust magnitude");
+
+	glColor3f(.9, .9, .9);
+
+	glBegin(GL_LINE_LOOP);
+
+	glVertex2d(300, 350);
+	glVertex2d(300, 470);
+	glVertex2d(350, 470);
+	glVertex2d(350, 350);
+
+	glEnd();
+
+	glBegin(GL_LINE_LOOP);
+
+	glVertex2d(500, 350);
+	glVertex2d(500, 470);
+	glVertex2d(550, 470);
+	glVertex2d(550, 350);
+
+	glEnd();
+
+	glBegin(GL_LINE_LOOP);
+
+	glVertex2d(700, 350);
+	glVertex2d(700, 470);
+	glVertex2d(750, 470);
+	glVertex2d(750, 350);
+
+	glEnd();
+
+	glColor4f(1., 0., 0., .8);
+
+	glBegin(GL_POLYGON);
+
+	printf("%f\n", ambientRed);
+	int maxRedY = 351 + (int)(ambientRed * 118);
+	glVertex2d(300, 350);
+	glVertex2d(300, maxRedY);
+	glVertex2d(350, maxRedY);
+	glVertex2d(350, 350);
+
+	glEnd();
+
+	glColor4f(0., 1., 0., .8);
+
+	glBegin(GL_POLYGON);
+
+	int maxGreenY = 351 + (int)(ambientGreen * 118);
+	glVertex2d(500, 350);
+	glVertex2d(500, maxGreenY);
+	glVertex2d(550, maxGreenY);
+	glVertex2d(550, 350);
+
+	glEnd();
+
+	glColor4f(0., 0., 1., .8);
+
+	glBegin(GL_POLYGON);
+
+	int maxBlueY = 351 + (int)(ambientBlue * 118);
+	glVertex2d(700, 350);
+	glVertex2d(700, maxBlueY);
+	glVertex2d(750, maxBlueY);
+	glVertex2d(750, 350);
+
+	glEnd();
+
+	glColor3f(.9, .9, .9);
+
+	glBegin(GL_POLYGON);
+
+	int colorSelectionX = 300 + 200 * (adjusting_color == red ? 0 : adjusting_color == green ? 1 : 2);
+	glVertex2d(colorSelectionX, 290);
+	glVertex2d(colorSelectionX + 50, 290);
+	glVertex2d(colorSelectionX + 25, 340);
+
+	glEnd();
+
+	glColor4f(.2, .2, .45, 0.55);
+	glBegin(GL_POLYGON);
+
+	glVertex2d(100, SCREEN_HEIGHT - 200);
+	glVertex2d(950, SCREEN_HEIGHT - 200);
+	glVertex2d(950, 100);
+	glVertex2d(100, 100);
+
+	glEnd();
+
+	
+}
+
+void display2D()
+{
+	const int SCREEN_HEIGHT = glutGet(GLUT_SCREEN_HEIGHT);
+
+	glDisable(GL_LIGHTING);
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	gluOrtho2D(0, glutGet(GLUT_SCREEN_WIDTH), 0, glutGet(GLUT_SCREEN_HEIGHT));
+
+	displayMenu(SCREEN_HEIGHT);
 
 	if (current_state == help)
 	{
-		glColor3f(.95, .95, .95);
-		writeText(110, SCREEN_HEIGHT - 220, GLUT_BITMAP_HELVETICA_18, 
-			"Use arrow keys to move: UP = forward, DOWN = backward, RIGHT / LEFT = turn");
-
-		writeText(110, SCREEN_HEIGHT - 270, GLUT_BITMAP_HELVETICA_18, 
-			"Press SPACE to toggle between fixed camera and first-elephant point of view");
-
-		writeText(110, SCREEN_HEIGHT - 420, GLUT_BITMAP_HELVETICA_18, "Press ESC to return to game");
-
-		glColor4f(.2, .2, .45, 0.55);
-		glBegin(GL_POLYGON);
-
-		glVertex2d(100, SCREEN_HEIGHT - 200);
-		glVertex2d(950, SCREEN_HEIGHT - 200);
-		glVertex2d(950, 100);
-		glVertex2d(100, 100);
-
-		glEnd();
+		displayHelp(SCREEN_HEIGHT);
 	}
 	else if (current_state == adjust_light)
 	{
-		glColor3f(.95, .95, .95);
-		writeText(110, SCREEN_HEIGHT - 220, GLUT_BITMAP_HELVETICA_18,
-			"Adjusting ambient light (press ESC to return to game)");
-
-		writeText(110, SCREEN_HEIGHT - 270, GLUT_BITMAP_HELVETICA_18,
-			"Use arrows: RIGHT / LEFT to choose color and UP / DOWN to adjust magnitude");
-
-		glColor4f(.2, .2, .45, 0.55);
-		glBegin(GL_POLYGON);
-
-		glVertex2d(100, SCREEN_HEIGHT - 200);
-		glVertex2d(950, SCREEN_HEIGHT - 200);
-		glVertex2d(950, 100);
-		glVertex2d(100, 100);
-
-		glEnd();
+		displayAdjustAmbientLight(SCREEN_HEIGHT);
 	}
 
 	glEnable(GL_LIGHTING);
@@ -594,43 +696,67 @@ void display()
 
 void timer(int v)
 {
-	double step_size = 0.2;
-
-	if (up_arrow_down || down_arrow_down)
+	if (current_state == playing)
 	{
-		int coeff = down_arrow_down ? -1 : 1;
-		elephantX -= coeff * step_size * cos(elephantRotation * M_PI / 180);
-		elephantZ += coeff * step_size * sin(elephantRotation * M_PI / 180);
+		double step_size = 0.2;
 
-		if (elephantX <= -8.5)
+		if (up_arrow_down || down_arrow_down)
 		{
-			elephantX = -8.5;
+			int coeff = down_arrow_down ? -1 : 1;
+			elephantX -= coeff * step_size * cos(elephantRotation * M_PI / 180);
+			elephantZ += coeff * step_size * sin(elephantRotation * M_PI / 180);
+
+			if (elephantX <= -8.5)
+			{
+				elephantX = -8.5;
+			}
+
+			if (elephantX >= 8.5)
+			{
+				elephantX = 8.5;
+			}
+
+			if (elephantZ <= -13.5)
+			{
+				elephantZ = -13.5;
+			}
+
+			if (elephantZ >= -1.5)
+			{
+				elephantZ = -1.5;
+			}
 		}
 
-		if (elephantX >= 8.5)
+		if (right_arrow_down)
 		{
-			elephantX = 8.5;
+			elephantRotation -= 4;
 		}
 
-		if (elephantZ <= -13.5)
+		if (left_arrow_down)
 		{
-			elephantZ = -13.5;
-		}
-
-		if (elephantZ >= -1.5)
-		{
-			elephantZ = -1.5;
+			elephantRotation += 4;
 		}
 	}
-
-	if (right_arrow_down)
+	else if (current_state == adjust_light)
 	{
-		elephantRotation -= 4;
-	}
-
-	if (left_arrow_down)
-	{
-		elephantRotation += 4;
+		double light_step_size = 0.01;
+		double* adjusting_color_variable = adjusting_color == red ? &ambientRed : adjusting_color == green ? &ambientGreen : &ambientBlue;
+		if (up_arrow_down)
+		{
+			*adjusting_color_variable += light_step_size;
+			if (*adjusting_color_variable > 1)
+			{
+				*adjusting_color_variable = 1.;
+			}
+		}
+		else if (down_arrow_down)
+		{
+			*adjusting_color_variable -= light_step_size;
+			if (*adjusting_color_variable < 0)
+			{
+				*adjusting_color_variable = 0;
+			}
+		}
 	}
 
 	glutPostRedisplay();
@@ -674,6 +800,30 @@ void special_keyboard_down(int key, int x, int y)
 
 			break;
 		}
+	}
+	else if (current_state == adjust_light)
+	{
+		int current_color = adjusting_color == red ? 0 : adjusting_color == green ? 1 : 2;
+		switch (key)
+		{
+		case GLUT_KEY_RIGHT:
+			current_color += 1;
+			break;
+		case GLUT_KEY_LEFT:
+			current_color -= 1;
+			break;
+		case GLUT_KEY_UP:
+			up_arrow_down = true;
+			break;
+		case GLUT_KEY_DOWN:
+			down_arrow_down = true;
+			break;
+		default:
+			break;
+		}
+
+		current_color = current_color % 3;
+		adjusting_color = current_color == 0 ? red : current_color == 1 ? green : blue;
 	}
 }
 
