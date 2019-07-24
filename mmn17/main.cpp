@@ -12,11 +12,18 @@ bool up_arrow_down = false;
 bool right_arrow_down = false;
 bool left_arrow_down = false;
 bool down_arrow_down = false;
+bool tail_up = false;
+bool tail_down = false;
+bool tail_right = false;
+bool tail_left = false;
 bool elephantPOV = false;
 
 double ambientRed = .8;
 double ambientGreen = .8;
 double ambientBlue = .8;
+
+double tailRotationY = 90;
+double tailRotationX = -70;
 
 enum game_state {
 	playing,
@@ -330,14 +337,15 @@ void drawElephant()
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, specularCoeff);
 	glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 1.);
 
-	glutSolidSphere(1, 100, 100);
+	glutSolidSphere(1, 100, 100); // Body
 
 	glTranslatef(-.8, .7, 0);
-	glutSolidSphere(0.65, 20, 20);
+	glutSolidSphere(0.65, 20, 20); // Head
 
 	glPopMatrix();
 	glPushMatrix();
 
+	// Legs
 	glTranslatef(.5, -.9, .4);
 	glutSolidSphere(0.3, 20, 20);
 
@@ -359,18 +367,20 @@ void drawElephant()
 	glTranslatef(-.5, -.9, -.4);
 	glutSolidSphere(0.3, 20, 20);
 
+	// Tail
 	glPopMatrix();
 	glPushMatrix();
 
 	glTranslatef(.85, 0, 0);
-	glRotatef(90, 0, 1., 0);
-	glRotatef(-70, 1., 0, 0);
+	glRotatef(tailRotationY, 0, 1, 0);
+	glRotatef(tailRotationX, 1, 0, 0);
 	
 	glutSolidCone(.05, 1.3, 10, 10);
 
 	glPopMatrix();
 	glPushMatrix();
 
+	// Trunk
 	GLUquadricObj *quadratic;
 	quadratic = gluNewQuadric();
 
@@ -394,6 +404,7 @@ void drawElephant()
 	glPopMatrix();
 	glPushMatrix();
 
+	// Ears
 	glTranslatef(-1.1, 0.7, -.6);
 	glScalef(.1, 1, .8);
 
@@ -407,6 +418,7 @@ void drawElephant()
 
 	glutSolidSphere(0.7, 20, 20);
 
+	// Eyes
 	GLfloat ambientBlackCoeff[] = { 0., 0., 0., 1. };
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, ambientBlackCoeff);
 
@@ -503,6 +515,9 @@ void displayHelp(const int SCREEN_HEIGHT)
 
 	writeText(110, SCREEN_HEIGHT - 270, GLUT_BITMAP_HELVETICA_18,
 		"Press SPACE to toggle between fixed camera and first-elephant point of view");
+
+	writeText(110, SCREEN_HEIGHT - 320, GLUT_BITMAP_HELVETICA_18,
+		"Tail movement: use JKLI; i = up, k = down, j = left, l = right");
 
 	writeText(110, SCREEN_HEIGHT - 420, GLUT_BITMAP_HELVETICA_18, "Press ESC to return to game");
 
@@ -731,10 +746,43 @@ void timer(int v)
 		{
 			elephantRotation -= 4;
 		}
-
-		if (left_arrow_down)
+		else if (left_arrow_down)
 		{
 			elephantRotation += 4;
+		}
+
+		if (tail_up)
+		{
+			tailRotationX -= 2;
+			if (tailRotationX < -80)
+			{
+				tailRotationX = -80;
+			}
+		}
+		else if (tail_down)
+		{
+			tailRotationX += 2;
+			if (tailRotationX > 45)
+			{
+				tailRotationX = 45;
+			}
+		}
+
+		if (tail_right)
+		{
+			tailRotationY += 2;
+			if (tailRotationY > 135)
+			{
+				tailRotationY = 135;
+			}
+		}
+		else if (tail_left)
+		{
+			tailRotationY -= 2;
+			if (tailRotationY < 45)
+			{
+				tailRotationY = 45;
+			}
 		}
 	}
 	else if (current_state == adjust_light)
@@ -767,14 +815,51 @@ void keyboard(unsigned char key, int x, int y)
 {
 	if (current_state == playing)
 	{
-		if (key == ' ')
+		switch (key)
 		{
+		case ' ':
 			elephantPOV = !elephantPOV;
+			break;
+		case 'i':
+			tail_up = true;
+			break;
+		case 'k':
+			tail_down = true;
+			break;
+		case 'j':
+			tail_left = true;
+			break;
+		case 'l':
+			tail_right = true;
+			break;
+		default:
+			break;
 		}
 	}
 	else if ((current_state == help || current_state == adjust_light) && (int)key == 27) // ESC key
 	{
 		current_state = playing;
+	}
+}
+
+void keyboard_up(unsigned char key, int x, int y)
+{
+	switch (key)
+	{
+	case 'i':
+		tail_up = false;
+		break;
+	case 'k':
+		tail_down = false;
+		break;
+	case 'j':
+		tail_left = false;
+		break;
+	case 'l':
+		tail_right = false;
+		break;
+	default:
+		break;
 	}
 }
 
@@ -892,6 +977,7 @@ int main(int argc, char** argv)
 
 	glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
 	glutKeyboardFunc(keyboard);
+	glutKeyboardUpFunc(keyboard_up);
 	glutSpecialFunc(special_keyboard_down);
 	glutSpecialUpFunc(special_keyboard_up);
 	glutMouseFunc(mouse);
@@ -907,12 +993,8 @@ int main(int argc, char** argv)
 TODO
 ====
 
-Tuesday:
-- menus: adjust ambient light - 5h
-
 Wednesday:
 - move elephant head by keyboard - 3h
-- move tail by keyboard - 2h
 
 Weekend:
 - light direction - 1h
