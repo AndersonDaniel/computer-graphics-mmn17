@@ -691,6 +691,8 @@ int main(int argc, char** argv)
 	glutReshapeFunc(reshape);
 	glutTimerFunc(25, timer, 0);
 
+	// We want to manually handle behavior when a key is pressed and not released,
+	// so we turn off the automatic key repeat default behavior
 	glutSetKeyRepeat(GLUT_KEY_REPEAT_OFF);
 	glutKeyboardFunc(keyboard_down);
 	glutKeyboardUpFunc(keyboard_up);
