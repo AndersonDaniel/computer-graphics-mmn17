@@ -8,10 +8,18 @@
 double elephantRotation = 68;
 double elephantX = 0;
 double elephantZ = -2;
+
+double lightX = 0;
+double lightY = 2;
+double lightZ = -14.5;
+double lightRotationY = 90;
+double lightRotationZ = 270;
+
 bool up_arrow_down = false;
 bool right_arrow_down = false;
 bool left_arrow_down = false;
 bool down_arrow_down = false;
+bool space_down = false;
 bool tail_up = false;
 bool tail_down = false;
 bool tail_right = false;
@@ -25,6 +33,12 @@ bool elephantPOV = false;
 double ambientRed = .8;
 double ambientGreen = .8;
 double ambientBlue = .8;
+
+double diffuseRed = .8;
+double diffuseGreen = .8;
+double diffuseBlue = .8;
+
+double *targetRed, *targetGreen, *targetBlue;
 
 double tailRotationY = 90;
 double tailRotationX = -70;
@@ -42,8 +56,14 @@ enum color {
 	red, green, blue
 };
 
+enum light_type {
+	ambient,
+	diffuse
+};
+
 game_state current_state = playing;
 color adjusting_color = red;
+light_type currently_adjusting_light = ambient;
 
 void lighting()
 {
@@ -52,14 +72,21 @@ void lighting()
 	glEnable(GL_LIGHT0);
 	glShadeModel(GL_SMOOTH);
 	
-	GLfloat light1PosType[] = { 0, 2, -14.5, 1.0 };
+	GLfloat light1PosType[] = { lightX, lightY, lightZ, 1.0 };
+	GLfloat lightDirection[] = { cos(lightRotationY * M_PI / 180.), 
+								 cos(lightRotationZ * M_PI / 180.),
+								 sin(lightRotationY * M_PI / 180.) };
 	glLightfv(GL_LIGHT0, GL_POSITION, light1PosType);
+	glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 80.);
+	glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, lightDirection);
+	glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 1);
 
 	GLfloat red[] = { 1., 0., 0., 1. };
 	GLfloat white[] = { .8, .8, .8, 1. };
 	GLfloat ambient[] = { ambientRed, ambientGreen, ambientBlue, 1. };
+	GLfloat diffuse[] = { diffuseRed, diffuseGreen, diffuseBlue };
 	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, white);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, white);
 }
 
@@ -502,7 +529,8 @@ void displayMenu(const int SCREEN_HEIGHT)
 	glColor3f(.95, .95, .95);
 	writeText(25, SCREEN_HEIGHT - 50, GLUT_BITMAP_HELVETICA_18, "HELP");
 	writeText(25, SCREEN_HEIGHT - 100, GLUT_BITMAP_HELVETICA_18, "ADJUST AMBIENT LIGHT");
-	writeText(25, SCREEN_HEIGHT - 150, GLUT_BITMAP_HELVETICA_18, "QUIT");
+	writeText(25, SCREEN_HEIGHT - 150, GLUT_BITMAP_HELVETICA_18, "ADJUST LIGHT SOURCE");
+	writeText(25, SCREEN_HEIGHT - 200, GLUT_BITMAP_HELVETICA_18, "QUIT");
 
 	glBegin(GL_LINES);
 
@@ -510,6 +538,8 @@ void displayMenu(const int SCREEN_HEIGHT)
 	glVertex2d(245, SCREEN_HEIGHT - 67);
 	glVertex2d(35, SCREEN_HEIGHT - 117);
 	glVertex2d(245, SCREEN_HEIGHT - 117);
+	glVertex2d(35, SCREEN_HEIGHT - 167);
+	glVertex2d(245, SCREEN_HEIGHT - 167);
 
 	glEnd();
 
@@ -518,8 +548,8 @@ void displayMenu(const int SCREEN_HEIGHT)
 
 	glVertex2d(20, SCREEN_HEIGHT - 20);
 	glVertex2d(300, SCREEN_HEIGHT - 20);
-	glVertex2d(300, SCREEN_HEIGHT - 160);
-	glVertex2d(20, SCREEN_HEIGHT - 160);
+	glVertex2d(300, SCREEN_HEIGHT - 220);
+	glVertex2d(20, SCREEN_HEIGHT - 220);
 
 	glEnd();
 }
@@ -527,103 +557,118 @@ void displayMenu(const int SCREEN_HEIGHT)
 void displayHelp(const int SCREEN_HEIGHT)
 {
 	glColor3f(.95, .95, .95);
-	writeText(110, SCREEN_HEIGHT - 220, GLUT_BITMAP_HELVETICA_18,
+	writeText(110, SCREEN_HEIGHT - 320, GLUT_BITMAP_HELVETICA_18,
 		"Use arrow keys to move: UP = forward, DOWN = backward, RIGHT / LEFT = turn");
 
-	writeText(110, SCREEN_HEIGHT - 270, GLUT_BITMAP_HELVETICA_18,
+	writeText(110, SCREEN_HEIGHT - 370, GLUT_BITMAP_HELVETICA_18,
 		"Press SPACE to toggle between fixed camera and first-elephant point of view");
 
-	writeText(110, SCREEN_HEIGHT - 320, GLUT_BITMAP_HELVETICA_18,
+	writeText(110, SCREEN_HEIGHT - 420, GLUT_BITMAP_HELVETICA_18,
 		"Head movement: use ASDW; w = up, s = down, a = left, d = right");
 
-	writeText(110, SCREEN_HEIGHT - 370, GLUT_BITMAP_HELVETICA_18,
+	writeText(110, SCREEN_HEIGHT - 470, GLUT_BITMAP_HELVETICA_18,
 		"Tail movement: use JKLI; i = up, k = down, j = left, l = right");
 
-	writeText(110, SCREEN_HEIGHT - 420, GLUT_BITMAP_HELVETICA_18, "Press ESC to return to game");
+	writeText(110, SCREEN_HEIGHT - 520, GLUT_BITMAP_HELVETICA_18, "Press ESC to return to game");
 
 	glColor4f(.2, .2, .45, 0.55);
 	glBegin(GL_POLYGON);
 
-	glVertex2d(100, SCREEN_HEIGHT - 200);
-	glVertex2d(950, SCREEN_HEIGHT - 200);
-	glVertex2d(950, 100);
-	glVertex2d(100, 100);
+	glVertex2d(100, SCREEN_HEIGHT - 300);
+	glVertex2d(950, SCREEN_HEIGHT - 300);
+	glVertex2d(950, 50);
+	glVertex2d(100, 50);
 
 	glEnd();
 }
 
-void displayAdjustAmbientLight(const int SCREEN_HEIGHT)
+void displayAdjustLight(const int SCREEN_HEIGHT)
 {
 	glColor3f(.95, .95, .95);
-	writeText(110, SCREEN_HEIGHT - 220, GLUT_BITMAP_HELVETICA_18,
-		"Adjusting ambient light (press ESC to return to game)");
 
-	writeText(110, SCREEN_HEIGHT - 270, GLUT_BITMAP_HELVETICA_18,
+	if (currently_adjusting_light == ambient)
+	{
+		writeText(110, SCREEN_HEIGHT - 320, GLUT_BITMAP_HELVETICA_18,
+			"Adjusting ambient light (press ESC to return to game)");
+	}
+	else
+	{
+		writeText(110, SCREEN_HEIGHT - 320, GLUT_BITMAP_HELVETICA_18,
+			"Adjusting light source (press ESC to return to game)");
+	}
+	
+
+	writeText(110, SCREEN_HEIGHT - 370, GLUT_BITMAP_HELVETICA_18,
 		"Use arrows: RIGHT / LEFT to choose color and UP / DOWN to adjust magnitude");
+
+	if (currently_adjusting_light == diffuse)
+	{
+		writeText(110, SCREEN_HEIGHT - 420, GLUT_BITMAP_HELVETICA_18,
+			"Use ASDW to adjust light direction and SPACE to move light in its direction");
+	}
 
 	glColor3f(.9, .9, .9);
 
 	glBegin(GL_LINE_LOOP);
 
-	glVertex2d(300, 350);
-	glVertex2d(300, 470);
-	glVertex2d(350, 470);
-	glVertex2d(350, 350);
+	glVertex2d(300, 250);
+	glVertex2d(300, 370);
+	glVertex2d(350, 370);
+	glVertex2d(350, 250);
 
 	glEnd();
 
 	glBegin(GL_LINE_LOOP);
 
-	glVertex2d(500, 350);
-	glVertex2d(500, 470);
-	glVertex2d(550, 470);
-	glVertex2d(550, 350);
+	glVertex2d(500, 250);
+	glVertex2d(500, 370);
+	glVertex2d(550, 370);
+	glVertex2d(550, 250);
 
 	glEnd();
 
 	glBegin(GL_LINE_LOOP);
 
-	glVertex2d(700, 350);
-	glVertex2d(700, 470);
-	glVertex2d(750, 470);
-	glVertex2d(750, 350);
+	glVertex2d(700, 250);
+	glVertex2d(700, 370);
+	glVertex2d(750, 370);
+	glVertex2d(750, 250);
 
 	glEnd();
 
-	glColor4f(1., 0., 0., .8);
+	glColor4f(1., 0., 0., .6);
 
 	glBegin(GL_POLYGON);
 
-	printf("%f\n", ambientRed);
-	int maxRedY = 351 + (int)(ambientRed * 118);
-	glVertex2d(300, 350);
+	int maxRedY = 251 + (int)(*targetRed * 118);
+	glVertex2d(300, 250);
 	glVertex2d(300, maxRedY);
 	glVertex2d(350, maxRedY);
-	glVertex2d(350, 350);
+	glVertex2d(350, 250);
 
 	glEnd();
 
-	glColor4f(0., 1., 0., .8);
+	glColor4f(0., 1., 0., .6);
 
 	glBegin(GL_POLYGON);
 
-	int maxGreenY = 351 + (int)(ambientGreen * 118);
-	glVertex2d(500, 350);
+	int maxGreenY = 251 + (int)(*targetGreen * 118);
+	glVertex2d(500, 250);
 	glVertex2d(500, maxGreenY);
 	glVertex2d(550, maxGreenY);
-	glVertex2d(550, 350);
+	glVertex2d(550, 250);
 
 	glEnd();
 
-	glColor4f(0., 0., 1., .8);
+	glColor4f(0., 0., 1., .6);
 
 	glBegin(GL_POLYGON);
 
-	int maxBlueY = 351 + (int)(ambientBlue * 118);
-	glVertex2d(700, 350);
+	int maxBlueY = 251 + (int)(*targetBlue * 118);
+	glVertex2d(700, 250);
 	glVertex2d(700, maxBlueY);
 	glVertex2d(750, maxBlueY);
-	glVertex2d(750, 350);
+	glVertex2d(750, 250);
 
 	glEnd();
 
@@ -632,19 +677,19 @@ void displayAdjustAmbientLight(const int SCREEN_HEIGHT)
 	glBegin(GL_POLYGON);
 
 	int colorSelectionX = 300 + 200 * (adjusting_color == red ? 0 : adjusting_color == green ? 1 : 2);
-	glVertex2d(colorSelectionX, 290);
-	glVertex2d(colorSelectionX + 50, 290);
-	glVertex2d(colorSelectionX + 25, 340);
+	glVertex2d(colorSelectionX, 190);
+	glVertex2d(colorSelectionX + 50, 190);
+	glVertex2d(colorSelectionX + 25, 240);
 
 	glEnd();
 
-	glColor4f(.2, .2, .45, 0.55);
+	glColor4f(.2, .2, .45, 0.4);
 	glBegin(GL_POLYGON);
 
-	glVertex2d(100, SCREEN_HEIGHT - 200);
-	glVertex2d(950, SCREEN_HEIGHT - 200);
-	glVertex2d(950, 100);
-	glVertex2d(100, 100);
+	glVertex2d(100, SCREEN_HEIGHT - 300);
+	glVertex2d(950, SCREEN_HEIGHT - 300);
+	glVertex2d(950, 50);
+	glVertex2d(100, 50);
 
 	glEnd();
 
@@ -661,7 +706,7 @@ void display2D()
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	gluOrtho2D(0, glutGet(GLUT_SCREEN_WIDTH), 0, glutGet(GLUT_SCREEN_HEIGHT));
+	gluOrtho2D(0, glutGet(GLUT_SCREEN_WIDTH), 0, SCREEN_HEIGHT);
 
 	displayMenu(SCREEN_HEIGHT);
 
@@ -671,8 +716,30 @@ void display2D()
 	}
 	else if (current_state == adjust_light)
 	{
-		displayAdjustAmbientLight(SCREEN_HEIGHT);
+		displayAdjustLight(SCREEN_HEIGHT);
 	}
+
+	glEnable(GL_LIGHTING);
+}
+
+void drawLight()
+{
+	glTranslatef(lightX, lightY, lightZ);
+
+	glColor3f(1., 1., 1.);
+
+	glutSolidSphere(1, 20, 20);
+
+	glDisable(GL_LIGHTING);
+
+	glBegin(GL_LINES);
+	
+	glVertex3d(0, 0, 0);
+	glVertex3d(4 * cos(lightRotationY * M_PI / 180.),
+		4 * cos(lightRotationZ * M_PI / 180.),
+		4 * sin(lightRotationY * M_PI / 180.));
+	
+	glEnd();
 
 	glEnable(GL_LIGHTING);
 }
@@ -688,19 +755,39 @@ void display()
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
+	double lookAtX = elephantX;
+	double lookAtY = -3.9;
+	double lookAtZ = elephantZ;
+
+	double cameraX;
+	double cameraY;
+	double cameraZ;
+
 	if (!elephantPOV)
 	{
-		gluLookAt(4, 3.5, -14.5, elephantX, -3.9, elephantZ, 0, 1, 0);
+		cameraX = 4;
+		cameraY = 3.5;
+		cameraZ = -14.5;
 	}
 	else
 	{
-		double lookAtX = elephantX - cos((elephantRotation + headRotationY) * M_PI / 180);
-		double lookAtY = -2 - sin(headRotationZ * M_PI / 180);
-		double lookAtZ = elephantZ + sin((elephantRotation + headRotationY) * M_PI / 180);
-		gluLookAt(elephantX + 4.5 * (lookAtX - elephantX) / 12.,
-				  -2 + 4.5 * (lookAtY + 2) / 12.,
-				 elephantZ + 4.5 * (lookAtZ - elephantZ) / 12., lookAtX, lookAtY, lookAtZ, 0, 1, 0);
+		lookAtX = elephantX - cos((elephantRotation + headRotationY) * M_PI / 180);
+		lookAtY = -2 - sin(headRotationZ * M_PI / 180);
+		lookAtZ = elephantZ + sin((elephantRotation + headRotationY) * M_PI / 180);
+
+		cameraX = elephantX + 4.5 * (lookAtX - elephantX) / 12.;
+		cameraY = -2 + 4.5 * (lookAtY + 2) / 12.;
+		cameraZ = elephantZ + 4.5 * (lookAtZ - elephantZ) / 12.;
 	}
+
+	if (current_state == adjust_light && currently_adjusting_light == diffuse)
+	{
+		lookAtX = lightX;
+		lookAtY = lightY;
+		lookAtZ = lightZ;
+	}
+
+	gluLookAt(cameraX, cameraY, cameraZ, lookAtX, lookAtY, lookAtZ, 0, 1, 0);
 	
 	glPushMatrix();
 
@@ -708,8 +795,8 @@ void display()
 	glPopMatrix();
 	glPushMatrix();
 	lighting();
+	
 
-	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
 	glPushMatrix();
 
@@ -723,8 +810,18 @@ void display()
 	
 	glMatrixMode(GL_MODELVIEW);
 	glPopMatrix();
+	glPushMatrix();
 
 	drawElephant();
+
+	if (current_state == adjust_light && currently_adjusting_light == diffuse)
+	{
+		glPopMatrix();
+		glPushMatrix();
+		drawLight();
+	}
+
+	glPopMatrix();
 
 	display2D();
 
@@ -846,7 +943,7 @@ void timer(int v)
 	else if (current_state == adjust_light)
 	{
 		double light_step_size = 0.01;
-		double* adjusting_color_variable = adjusting_color == red ? &ambientRed : adjusting_color == green ? &ambientGreen : &ambientBlue;
+		double* adjusting_color_variable = adjusting_color == red ? targetRed : adjusting_color == green ? targetGreen : targetBlue;
 		if (up_arrow_down)
 		{
 			*adjusting_color_variable += light_step_size;
@@ -863,6 +960,67 @@ void timer(int v)
 				*adjusting_color_variable = 0;
 			}
 		}
+
+		if (head_down)
+		{
+			lightRotationZ -= 2;
+			if (lightRotationZ < 225)
+			{
+				lightRotationZ = 225;
+			}
+		}
+		else if (head_up)
+		{
+			lightRotationZ += 2;
+			if (lightRotationZ > 305)
+			{
+				lightRotationZ = 305;
+			}
+		}
+
+		if (head_right)
+		{
+			lightRotationY += 2;
+		}
+		else if (head_left)
+		{
+			lightRotationY -= 2;
+		}
+
+		if (space_down)
+		{
+			double light_movement_step_size = 0.1;
+			lightX += light_movement_step_size * cos(lightRotationY * M_PI / 180.);
+			lightY += light_movement_step_size * cos(lightRotationZ * M_PI / 180.);
+			lightZ += light_movement_step_size * sin(lightRotationY * M_PI / 180.);
+
+			if (lightX < -10)
+			{
+				lightX = 10;
+			}
+			else if (lightX > 10)
+			{
+				lightX = -10;
+			}
+
+			if (lightY < -5)
+			{
+				lightY = 5;
+			}
+			else if (lightY > 5)
+			{
+				lightY = -5;
+			}
+
+			if (lightZ < -15)
+			{
+				lightZ = 0;
+			}
+			else if (lightZ > 0)
+			{
+				lightZ = -15;
+			}
+		}
 	}
 
 	glutPostRedisplay();
@@ -871,12 +1029,17 @@ void timer(int v)
 
 void keyboard(unsigned char key, int x, int y)
 {
-	if (current_state == playing)
+	if (current_state == playing || (current_state == adjust_light && currently_adjusting_light == diffuse))
 	{
 		switch (key)
 		{
 		case ' ':
-			elephantPOV = !elephantPOV;
+			if (current_state == playing)
+			{
+				elephantPOV = !elephantPOV;
+			}
+			
+			space_down = true;
 			break;
 		case 'i':
 			tail_up = true;
@@ -906,7 +1069,8 @@ void keyboard(unsigned char key, int x, int y)
 			break;
 		}
 	}
-	else if ((current_state == help || current_state == adjust_light) && (int)key == 27) // ESC key
+
+	if ((current_state == help || current_state == adjust_light) && (int)key == 27) // ESC key
 	{
 		current_state = playing;
 	}
@@ -916,6 +1080,9 @@ void keyboard_up(unsigned char key, int x, int y)
 {
 	switch (key)
 	{
+	case ' ':
+		space_down = false;
+		break;
 	case 'i':
 		tail_up = false;
 		break;
@@ -1020,17 +1187,29 @@ void mouse(GLint button, GLint action, GLint x, GLint y)
 {
 	const int SCREEN_HEIGHT = glutGet(GLUT_SCREEN_HEIGHT);
 	y = SCREEN_HEIGHT - y;
-	if (x >= 20 && x <= 300 && y >= SCREEN_HEIGHT - 150 && y < SCREEN_HEIGHT - 100)
+	if (x >= 20 && x <= 300 && y >= SCREEN_HEIGHT - 180 && y < SCREEN_HEIGHT - 140)
 	{
 		exit(0);
 	}
-	else if (x >= 20 && x <= 300 && y >= SCREEN_HEIGHT - 50)
+	else if (x >= 20 && x <= 300 && y >= SCREEN_HEIGHT - 60 && y < SCREEN_HEIGHT - 20)
 	{
 		current_state = help;
 	}
-	else if (x >= 20 && x <= 300 && y >= SCREEN_HEIGHT - 100 && y < SCREEN_HEIGHT - 50)
+	else if (x >= 20 && x <= 300 && y >= SCREEN_HEIGHT - 100 && y < SCREEN_HEIGHT - 60)
 	{
 		current_state = adjust_light;
+		currently_adjusting_light = ambient;
+		targetRed = &ambientRed;
+		targetGreen = &ambientGreen;
+		targetBlue = &ambientBlue;
+	}
+	else if (x >= 20 && x <= 300 && y >= SCREEN_HEIGHT - 140 && y < SCREEN_HEIGHT - 100)
+	{
+		current_state = adjust_light;
+		currently_adjusting_light = diffuse;
+		targetRed = &diffuseRed;
+		targetGreen = &diffuseGreen;
+		targetBlue = &diffuseBlue;
 	}
 }
 
@@ -1076,8 +1255,6 @@ TODO
 ====
 
 Weekend:
-- light direction - 1h
-- allow user to adjust light magnitude, location and direction - 3h
 - allow use to control camera location - 2h
 - doc - 3h
 
