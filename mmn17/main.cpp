@@ -15,6 +15,12 @@ double lightZ = -14.5;
 double lightRotationY = 90;
 double lightRotationZ = 270;
 
+double cameraX = 4;
+double cameraY = 3.5;
+double cameraZ = -14.5;
+double cameraRotationY = 90;
+double cameraRotationZ = 225;
+
 bool up_arrow_down = false;
 bool right_arrow_down = false;
 bool left_arrow_down = false;
@@ -28,6 +34,8 @@ bool head_up = false;
 bool head_down = false;
 bool head_right = false;
 bool head_left = false;
+
+bool autofocus = true;
 bool elephantPOV = false;
 
 double ambientRed = .8;
@@ -49,7 +57,8 @@ double headRotationZ = 0;
 enum game_state {
 	playing,
 	help,
-	adjust_light
+	adjust_light,
+	adjust_camera
 };
 
 enum color {
@@ -77,9 +86,8 @@ void lighting()
 								 cos(lightRotationZ * M_PI / 180.),
 								 sin(lightRotationY * M_PI / 180.) };
 	glLightfv(GL_LIGHT0, GL_POSITION, light1PosType);
-	glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 80.);
+	glLightf(GL_LIGHT0, GL_SPOT_CUTOFF, 75.);
 	glLightfv(GL_LIGHT0, GL_SPOT_DIRECTION, lightDirection);
-	glLightf(GL_LIGHT0, GL_SPOT_EXPONENT, 1);
 
 	GLfloat red[] = { 1., 0., 0., 1. };
 	GLfloat white[] = { .8, .8, .8, 1. };
@@ -530,7 +538,8 @@ void displayMenu(const int SCREEN_HEIGHT)
 	writeText(25, SCREEN_HEIGHT - 50, GLUT_BITMAP_HELVETICA_18, "HELP");
 	writeText(25, SCREEN_HEIGHT - 100, GLUT_BITMAP_HELVETICA_18, "ADJUST AMBIENT LIGHT");
 	writeText(25, SCREEN_HEIGHT - 150, GLUT_BITMAP_HELVETICA_18, "ADJUST LIGHT SOURCE");
-	writeText(25, SCREEN_HEIGHT - 200, GLUT_BITMAP_HELVETICA_18, "QUIT");
+	writeText(25, SCREEN_HEIGHT - 200, GLUT_BITMAP_HELVETICA_18, "ADJUST CAMERA");
+	writeText(25, SCREEN_HEIGHT - 250, GLUT_BITMAP_HELVETICA_18, "QUIT");
 
 	glBegin(GL_LINES);
 
@@ -540,6 +549,8 @@ void displayMenu(const int SCREEN_HEIGHT)
 	glVertex2d(245, SCREEN_HEIGHT - 117);
 	glVertex2d(35, SCREEN_HEIGHT - 167);
 	glVertex2d(245, SCREEN_HEIGHT - 167);
+	glVertex2d(35, SCREEN_HEIGHT - 217);
+	glVertex2d(245, SCREEN_HEIGHT - 217);
 
 	glEnd();
 
@@ -548,8 +559,8 @@ void displayMenu(const int SCREEN_HEIGHT)
 
 	glVertex2d(20, SCREEN_HEIGHT - 20);
 	glVertex2d(300, SCREEN_HEIGHT - 20);
-	glVertex2d(300, SCREEN_HEIGHT - 220);
-	glVertex2d(20, SCREEN_HEIGHT - 220);
+	glVertex2d(300, SCREEN_HEIGHT - 270);
+	glVertex2d(20, SCREEN_HEIGHT - 270);
 
 	glEnd();
 }
@@ -696,6 +707,30 @@ void displayAdjustLight(const int SCREEN_HEIGHT)
 	
 }
 
+void displayAdjustCamera(const int SCREEN_HEIGHT)
+{
+	glColor3f(.95, .95, .95);
+
+	writeText(110, 180, GLUT_BITMAP_HELVETICA_18,
+		"Adjusting camera (press ESC to return to game)");
+
+	writeText(110, 150, GLUT_BITMAP_HELVETICA_18,
+		"Use arrows to rotate camera, SPACE to move in camera's direction");
+
+	writeText(110, 120, GLUT_BITMAP_HELVETICA_18,
+		"Press Q to refocus camera on elephant");
+
+	glColor4f(.2, .2, .45, 0.4);
+	glBegin(GL_POLYGON);
+
+	glVertex2d(100, 50);
+	glVertex2d(950, 50);
+	glVertex2d(950, 200);
+	glVertex2d(100, 200);
+
+	glEnd();
+}
+
 void display2D()
 {
 	const int SCREEN_HEIGHT = glutGet(GLUT_SCREEN_HEIGHT);
@@ -717,6 +752,10 @@ void display2D()
 	else if (current_state == adjust_light)
 	{
 		displayAdjustLight(SCREEN_HEIGHT);
+	}
+	else if (current_state == adjust_camera)
+	{
+		displayAdjustCamera(SCREEN_HEIGHT);
 	}
 
 	glEnable(GL_LIGHTING);
@@ -759,15 +798,22 @@ void display()
 	double lookAtY = -3.9;
 	double lookAtZ = elephantZ;
 
-	double cameraX;
-	double cameraY;
-	double cameraZ;
+	double local_cameraX;
+	double local_cameraY;
+	double local_cameraZ;
 
 	if (!elephantPOV)
 	{
-		cameraX = 4;
-		cameraY = 3.5;
-		cameraZ = -14.5;
+		local_cameraX = cameraX;
+		local_cameraY = cameraY;
+		local_cameraZ = cameraZ;
+
+		if (!autofocus)
+		{
+			lookAtX = cameraX + cos(cameraRotationY * M_PI / 180.);
+			lookAtY = cameraY + cos(cameraRotationZ * M_PI / 180.);
+			lookAtZ = cameraZ + sin(cameraRotationY * M_PI / 180.);
+		}
 	}
 	else
 	{
@@ -775,9 +821,9 @@ void display()
 		lookAtY = -2 - sin(headRotationZ * M_PI / 180);
 		lookAtZ = elephantZ + sin((elephantRotation + headRotationY) * M_PI / 180);
 
-		cameraX = elephantX + 4.5 * (lookAtX - elephantX) / 12.;
-		cameraY = -2 + 4.5 * (lookAtY + 2) / 12.;
-		cameraZ = elephantZ + 4.5 * (lookAtZ - elephantZ) / 12.;
+		local_cameraX = elephantX + 4.5 * (lookAtX - elephantX) / 12.;
+		local_cameraY = -2 + 4.5 * (lookAtY + 2) / 12.;
+		local_cameraZ = elephantZ + 4.5 * (lookAtZ - elephantZ) / 12.;
 	}
 
 	if (current_state == adjust_light && currently_adjusting_light == diffuse)
@@ -787,7 +833,7 @@ void display()
 		lookAtZ = lightZ;
 	}
 
-	gluLookAt(cameraX, cameraY, cameraZ, lookAtX, lookAtY, lookAtZ, 0, 1, 0);
+	gluLookAt(local_cameraX, local_cameraY, local_cameraZ, lookAtX, lookAtY, lookAtZ, 0, 1, 0);
 	
 	glPushMatrix();
 
@@ -1022,6 +1068,74 @@ void timer(int v)
 			}
 		}
 	}
+	else if (current_state == adjust_camera)
+	{
+		if (up_arrow_down || down_arrow_down || right_arrow_down || left_arrow_down || space_down)
+		{
+			autofocus = false;
+		}
+
+		if (down_arrow_down)
+		{
+			cameraRotationZ -= 2;
+			if (cameraRotationZ < 225)
+			{
+				cameraRotationZ = 225;
+			}
+		}
+		else if (up_arrow_down)
+		{
+			cameraRotationZ += 2;
+			if (cameraRotationZ > 305)
+			{
+				cameraRotationZ = 305;
+			}
+		}
+
+		if (right_arrow_down)
+		{
+			cameraRotationY += 2;
+		}
+		else if (left_arrow_down)
+		{
+			cameraRotationY -= 2;
+		}
+
+		if (space_down)
+		{
+			double camera_step_size = 0.5;
+			cameraX += camera_step_size * cos(cameraRotationY * M_PI / 180.);
+			cameraY += camera_step_size * cos(cameraRotationZ * M_PI / 180.);
+			cameraZ += camera_step_size * sin(cameraRotationY * M_PI / 180.);
+
+			if (cameraX < -9.5)
+			{
+				cameraX = 9.5;
+			}
+			else if (cameraX > 9.5)
+			{
+				cameraX = -9.5;
+			}
+
+			if (cameraY < -4.5)
+			{
+				cameraY = 4.5;
+			}
+			else if (cameraY > 4.5)
+			{
+				cameraY = -4.5;
+			}
+
+			if (cameraZ < -14.5)
+			{
+				cameraZ = 0.5;
+			}
+			else if (cameraZ > 0.5)
+			{
+				cameraZ = -14.5;
+			}
+		}
+	}
 
 	glutPostRedisplay();
 	glutTimerFunc(25, timer, 0);
@@ -1029,7 +1143,7 @@ void timer(int v)
 
 void keyboard(unsigned char key, int x, int y)
 {
-	if (current_state == playing || (current_state == adjust_light && currently_adjusting_light == diffuse))
+	if (current_state == playing || (current_state == adjust_light && currently_adjusting_light == diffuse) || current_state == adjust_camera)
 	{
 		switch (key)
 		{
@@ -1070,9 +1184,14 @@ void keyboard(unsigned char key, int x, int y)
 		}
 	}
 
-	if ((current_state == help || current_state == adjust_light) && (int)key == 27) // ESC key
+	if ((int)key == 27) // ESC key
 	{
 		current_state = playing;
+	}
+
+	if (current_state == adjust_camera && key == 'q')
+	{
+		autofocus = true;
 	}
 }
 
@@ -1114,7 +1233,7 @@ void keyboard_up(unsigned char key, int x, int y)
 
 void special_keyboard_down(int key, int x, int y)
 {
-	if (current_state == playing)
+	if (current_state == playing || current_state == adjust_camera)
 	{
 		switch (key)
 		{
@@ -1187,7 +1306,7 @@ void mouse(GLint button, GLint action, GLint x, GLint y)
 {
 	const int SCREEN_HEIGHT = glutGet(GLUT_SCREEN_HEIGHT);
 	y = SCREEN_HEIGHT - y;
-	if (x >= 20 && x <= 300 && y >= SCREEN_HEIGHT - 180 && y < SCREEN_HEIGHT - 140)
+	if (x >= 20 && x <= 300 && y >= SCREEN_HEIGHT - 220 && y < SCREEN_HEIGHT - 180)
 	{
 		exit(0);
 	}
@@ -1210,6 +1329,11 @@ void mouse(GLint button, GLint action, GLint x, GLint y)
 		targetRed = &diffuseRed;
 		targetGreen = &diffuseGreen;
 		targetBlue = &diffuseBlue;
+	}
+	else if (x >= 20 && x <= 300 && y >= SCREEN_HEIGHT - 180 && y < SCREEN_HEIGHT - 140)
+	{
+		current_state = adjust_camera;
+		elephantPOV = false;
 	}
 }
 
@@ -1255,7 +1379,6 @@ TODO
 ====
 
 Weekend:
-- allow use to control camera location - 2h
 - doc - 3h
 
 */
